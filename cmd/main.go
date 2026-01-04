@@ -1,6 +1,8 @@
 package main
 
 import (
+	"indonesia-holiday-api/internal/config"
+	"indonesia-holiday-api/internal/models"
 	"indonesia-holiday-api/internal/routes"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,13 +12,10 @@ import (
 func main() {
 	app := fiber.New()
 
+	config.ConnectDB()
+	models.Migrate()
+
 	routes.Register(app)
-	
-	// app.Get("/", func(c *fiber.Ctx) error {
-	// 	return c.JSON(fiber.Map{
-	// 		"message": "Indonesia Holiday API is running",
-	// 	})
-	// })
 
 	app.Listen(":3000")
 }

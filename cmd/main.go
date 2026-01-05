@@ -14,6 +14,7 @@ func main() {
 
 	config.ConnectDB()
 	models.Migrate()
+	models.SeedHolidays()
 
 	routes.Register(app)
 

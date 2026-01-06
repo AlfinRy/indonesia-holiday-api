@@ -50,3 +50,29 @@ func GetHolidays(c *fiber.Ctx) error {
 		"data": holidays,
 	})
 }
+
+func GetNextHoliday(c *fiber.Ctx) error {
+	query := `
+		SELECT id, date, name, type
+		FROM holidays
+		WHERE date >= date('now')
+		ORDER BY id date ASC
+		LIMIT 1
+	`
+
+	row := config.DB.QueryRow(query)
+
+	var h models.Holiday
+	err := row.Scan(&h.ID, &h.Date, &h.Name, &h.Type)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"success": false,
+			"message": "No upcoming holiday found",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data": h,
+	})
+}

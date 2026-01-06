@@ -8,4 +8,5 @@ import (
 
 func Register(app *fiber.App) {
 	app.Get("/api/holidays", handlers.GetHolidays)
+	app.Get("/api/holidays/next", handlers.GetNextHoliday)
 }

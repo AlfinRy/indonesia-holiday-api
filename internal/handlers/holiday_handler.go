@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"indonesia-holiday-api/internal/config"
 	"indonesia-holiday-api/internal/models"
 
@@ -9,10 +8,28 @@ import (
 )
 
 func GetHolidays(c *fiber.Ctx) error {
-	rows, err := config.DB.Query(
-		"SELECT id, date, name, type FROM holidays ORDER BY date ASC",
-	)
+	year := c.Query("year")
+	month := c.Query("month")
 
+	query := "SELECT id, date, name, type FROM holidays WHERE 1=1"
+	args := []interface{}{}
+
+	if year != "" {
+		query += " AND strftime('%Y', date) = ?"
+		args = append(args, year)
+	}
+
+	if month != "" {
+		query += " AND strftime('%m', date) = ?"
+		if len(month) == 1 {
+			month = "0" + month
+		}
+		args = append(args, month)
+	}
+
+	query += " ORDER BY date ASC"
+
+	rows, err := config.DB.Query(query, args...)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -22,12 +39,8 @@ func GetHolidays(c *fiber.Ctx) error {
 	
 	for rows.Next() {
 		var h models.Holiday
-		err := rows.Scan(&h.ID, &h.Date, &h.Name, &h.Type);
-		if err != nil {
-			if err == sql.ErrNoRows {
-				continue
-			}
-			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+		if err := rows.Scan(&h.ID, &h.Date, &h.Name, &h.Type); err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": err.Error()})	
 		}
 		holidays = append(holidays, h)
 	}
